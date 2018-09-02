@@ -54,7 +54,7 @@ proc `==`* (a, b: RedisValue): bool =
           result = a.err == b.err
   return false
 
-proc encode(v: RedisValue) : string 
+proc encode*(v: RedisValue) : string 
 proc encodeStr(v: RedisValue) : string =
   return fmt"+{v.s}{CRLF}"
 
@@ -73,6 +73,15 @@ proc encodeArray(v: RedisValue): string =
     res &= encode(el)
   res &= CRLF
   return res
+
+
+proc encode*(v: RedisValue) : string =
+  case v.kind 
+  of vkStr: return encodeStr(v)
+  of vkInt:    return encodeInt(v)
+  of vkError:  return encodeErr(v)
+  of vkBulkStr: return encodeBulkStr(v)
+  of vkArray: return encodeArray(v)
 
 
 proc decodeStr(s: string): (RedisValue, int) =
@@ -169,14 +178,6 @@ proc decode(s: string): (RedisValue, int) =
       echo fmt"Unreognized char {curchar}"
       break
 
-proc encode*(v: RedisValue) : string =
-  case v.kind 
-  of vkStr: return encodeStr(v)
-  of vkInt:    return encodeInt(v)
-  of vkError:  return encodeErr(v)
-  of vkBulkStr: return encodeBulkStr(v)
-  of vkArray: return encodeArray(v)
-
 
 type
   RedisBase[TSocket] = ref object of RootObj
@@ -196,12 +197,11 @@ proc decodeResponse*(resp: string): RedisValue =
   let pair = decode(resp)
   return pair[0]
 
-let decodeForm = decodeResponse
 
 proc readResponse(this:Redis): string = 
   var data = ""
   var b = ""
-  var closed = 999999
+  var closed = 1
 
   while true:
     try:
@@ -217,7 +217,7 @@ proc readResponse(this:Redis): string =
 proc readStream(this:Redis, breakAfter:string): string=
   var b = ""
   var data = ""
-  var closed = 99999
+  var closed = 1
   while true:
     if data.endsWith(breakAfter):
       break
@@ -238,7 +238,7 @@ proc readMany(this:Redis, count:int=1): string=
 proc readForm(this:Redis): string =
   var form = ""
   var b = ""
-  var closed = 9999
+  var closed = 1
   while true:
     closed = this.socket.recv(b,1)
     if closed == 0:
@@ -282,24 +282,43 @@ proc execCommand*(this: Redis, command: string, args:seq[string]): RedisValue =
   result = decodeResponse(form) 
 
 
-when isMainModule:
-  echo $encodeStr(RedisValue(kind:vkStr, s:"Hello, World"))
-  echo $encodeInt(RedisValue(kind:vkInt, i:341))
-  echo $encodeErr(RedisValue(kind:vkError, err:"Not found"))
-  echo $encodeArray(RedisValue(kind:vkArray, l: @[RedisValue(kind:vkStr, s:"Hello World"), RedisValue(kind:vkInt, i:23)]  ))
-  echo $encodeBulkStr(RedisValue(kind:vkBulkStr, bs:"Hello, World THIS IS REALLY NICE"))
 
-  let s = "*3\r\n:1\r\n:2\r\n:3\r\n\r\n"
-  echo $decode(s)
-  echo $decodeStr("+Hello, World\r\n")
-  echo $decodeError("-Not found\r\n")
-  echo $decodeInt(":1512\r\n")
-  echo $decodeBulkStr("$32\r\nHello, World THIS IS REALLY NICE\r\n")
-  
-  echo $decodeArray("*2\r\n+Hello World\r\n:23\r\n")
-  echo $decodeArray("*2\r\n*3\r\n:1\r\n:2\r\n:3\r\n\r\n*5\r\n:5\r\n:7\r\n+Hello Word\r\n-Err\r\n$6\r\nfoobar\r\n")
-  
-  echo $decodeArray("*4\r\n:51231\r\n$3\r\nfoo\r\n$-1\r\n$3\r\nbar\r\n")
+
+let decodeForm = decodeResponse
+let encodeValue = encode
+let decodeString* = decodeResponse
+
+when isMainModule:
+  echo $encodeValue(RedisValue(kind:vkStr, s:"Hello, World"))
+  # # +Hello, World
+  echo $encodeValue(RedisValue(kind:vkInt, i:341))
+  # # :341
+  echo $encodeValue(RedisValue(kind:vkError, err:"Not found"))
+  # # -Not found
+  echo $encodeValue(RedisValue(kind:vkArray, l: @[RedisValue(kind:vkStr, s:"Hello World"), RedisValue(kind:vkInt, i:23)]  ))
+  # #*2
+  # #+Hello World
+  # #:23
+
+  echo $encodeValue(RedisValue(kind:vkBulkStr, bs:"Hello, World THIS IS REALLY NICE"))
+  # #$32
+  # # Hello, World THIS IS REALLY NICE  
+  echo decodeString("*3\r\n:1\r\n:2\r\n:3\r\n\r\n")
+  # # @[1, 2, 3]
+  echo decodeString("+Hello, World\r\n")
+  # # Hello, World
+  echo decodeString("-Not found\r\n")
+  # # Not found
+  echo decodeString(":1512\r\n")
+  # # 1512
+  echo $decodeString("$32\r\nHello, World THIS IS REALLY NICE\r\n")
+  # Hello, World THIS IS REALLY NICE
+  echo decodeString("*2\r\n+Hello World\r\n:23\r\n")
+  # @[Hello World, 23]
+  echo decodeString("*2\r\n*3\r\n:1\r\n:2\r\n:3\r\n\r\n*5\r\n:5\r\n:7\r\n+Hello Word\r\n-Err\r\n$6\r\nfoobar\r\n")
+  # @[@[1, 2, 3], @[5, 7, Hello Word, Err, foobar]]
+  echo $decodeString("*4\r\n:51231\r\n$3\r\nfoo\r\n$-1\r\n$3\r\nbar\r\n")
+  # @[51231, foo, , bar]
 
   let con = open("localhost", 6379.Port)
   echo $con.execCommand("PING", @[])
