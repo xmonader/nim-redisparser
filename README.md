@@ -47,11 +47,19 @@ RESP(REdis Serialization Protocol) Serialization for Nim
   echo $con.execCommand("SCAN", @["0"])
 
 ```
-
+## Pipelining
+You can use `enqueueCommand` and `commitCommands` to make use of redis pipelining
+```nim
+  con.enqueueCommand("PING", @[])
+  con.enqueueCommand("PING", @[])
+  con.enqueueCommand("PING", @[])
+  
+  echo $con.commitCommands()
+```
 
 ## Roadmap
 
 - [X] Protocol serializer/deserializer
 - [] Tests
-- [] Pipelining
+- [X] Pipelining
 - [] Async APIs
