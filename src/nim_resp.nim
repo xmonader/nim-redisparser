@@ -185,12 +185,14 @@ type
     connected: bool
 
   Redis* = ref object of RedisBase[net.Socket]
+    pipeline*: seq[RedisValue]
 
 
 proc open*(host = "localhost", port = 6379.Port): Redis =
   result = Redis(
     socket: newSocket(buffered = true),
   )
+  result.pipeline = @[]
   result.socket.connect(host, port)
 
 proc decodeResponse*(resp: string): RedisValue = 
@@ -282,7 +284,22 @@ proc execCommand*(this: Redis, command: string, args:seq[string]): RedisValue =
   result = decodeResponse(form) 
 
 
+proc enqueueCommand*(this:Redis, command:string, args: seq[string]): void = 
+  let cmdArgs = concat(@[command], args)
+  var cmdAsRedisValues = newSeq[RedisValue]()
+  for cmd in cmdArgs:
+    cmdAsRedisValues.add(RedisValue(kind:vkBulkStr, bs:cmd))
+  var arr = RedisValue(kind:vkArray, l: cmdAsRedisValues)
+  this.pipeline.add(arr)
 
+proc commitCommands*(this:Redis) : RedisValue =
+  for cmd in this.pipeline:
+    this.socket.send(cmd.encode())
+  var responses = newSeq[RedisValue]()
+  for i in countup(0, len(this.pipeline)-1):
+    responses.add(decodeResponse(this.readForm()))
+  this.pipeline = @[]
+  return RedisValue(kind:vkArray, l:responses)
 
 let decodeForm = decodeResponse
 let encodeValue = encode
@@ -325,3 +342,9 @@ when isMainModule:
   echo $con.execCommand("SET", @["auser", "avalue"])
   echo $con.execCommand("GET", @["auser"])
   echo $con.execCommand("SCAN", @["0"])
+
+  con.enqueueCommand("PING", @[])
+  con.enqueueCommand("PING", @[])
+  con.enqueueCommand("PING", @[])
+  
+  echo $con.commitCommands()
