@@ -38,6 +38,8 @@ RESP(REdis Serialization Protocol) Serialization for Nim
 ```
 
 ## Executing commands
+
+### Sync
 ```nim
 
   let con = open("localhost", 6379.Port)
@@ -47,6 +49,34 @@ RESP(REdis Serialization Protocol) Serialization for Nim
   echo $con.execCommand("SCAN", @["0"])
 
 ```
+
+### Async
+```
+  let con = await openAsync("localhost", 6379.Port)
+  echo "Opened async"
+  var res = await con.execCommand("PING", @[])
+  echo res
+  res = await con.execCommand("SET", @["auser", "avalue"])
+  echo res
+  res = await con.execCommand("GET", @["auser"])
+  echo res
+  res = await con.execCommand("SCAN", @["0"])
+  echo res
+  res = await con.execCommand("SET", @["auser", "avalue"])
+  echo res
+  res = await con.execCommand("GET", @["auser"])
+  echo res
+  res = await con.execCommand("SCAN", @["0"])
+  echo res 
+
+  await con.enqueueCommand("PING", @[])
+  await con.enqueueCommand("PING", @[])
+  await con.enqueueCommand("PING", @[])
+  res = await con.commitCommands()
+  echo res
+```
+
+
 ## Pipelining
 You can use `enqueueCommand` and `commitCommands` to make use of redis pipelining
 ```nim
@@ -57,9 +87,13 @@ You can use `enqueueCommand` and `commitCommands` to make use of redis pipelinin
   echo $con.commitCommands()
 ```
 
+
+
+
+
 ## Roadmap
 
 - [X] Protocol serializer/deserializer
 - [] Tests
 - [X] Pipelining
-- [] Async APIs
+- [X] Async APIs
