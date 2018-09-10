@@ -40,6 +40,7 @@ RESP(REdis Serialization Protocol) Serialization for Nim
 ## Executing commands
 
 ### Sync
+
 ```nim
 
   let con = open("localhost", 6379.Port)
@@ -51,6 +52,7 @@ RESP(REdis Serialization Protocol) Serialization for Nim
 ```
 
 ### Async
+
 ```
   let con = await openAsync("localhost", 6379.Port)
   echo "Opened async"

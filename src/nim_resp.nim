@@ -1,6 +1,3 @@
-import redis
-
-
 import strformat, tables, json, strutils, sequtils, hashes, net, asyncdispatch, asyncnet, os, strutils, parseutils, deques, options
 
 const CRLF = "\r\n"
@@ -241,23 +238,23 @@ proc readForm(this:Redis|AsyncRedis): Future[string] {.multisync.} =
     let b = await this.receiveManaged()
     form &= b
     if b == "+":
-      form &= await this.readStream("\r\n")
+      form &= await this.readStream(CRLF)
       return form
     elif b == "-":
-      form &= await this.readStream("\r\n")
+      form &= await this.readStream(CRLF)
       return form
     elif b == ":":
-      form &= await this.readStream("\r\n")
+      form &= await this.readStream(CRLF)
       return form
     elif b == "$":
-      let bulklenstr = await this.readStream("\r\n")
+      let bulklenstr = await this.readStream(CRLF)
       form &= bulklenstr
       let bulklenI = parseInt(bulklenstr.strip()) 
       form &= await this.readMany(bulklenI)
-      form &= await this.readStream("\r\n")
+      form &= await this.readStream(CRLF)
       return form
     elif b == "*":
-        let lenstr = await this.readStream("\r\n")
+        let lenstr = await this.readStream(CRLF)
         form &= lenstr
         let lenstrAsI = parseInt(lenstr.strip())
         for i in countup(1, lenstrAsI):
@@ -377,4 +374,4 @@ when isMainModule:
 
   testEncodeDecode()
   testSync()
-  waitFor testAsync()`
+  waitFor testAsync()
