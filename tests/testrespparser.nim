@@ -1,4 +1,4 @@
-import respparser, tables, strformat
+import redisparser, tables, strformat
 
 
 var testpairs = initOrderedTable[RedisValue, string]()
