@@ -1,6 +1,6 @@
 import strformat, tables, json, strutils, sequtils, hashes, net, asyncdispatch, asyncnet, os, strutils, parseutils, deques, options
 
-const CRLF = "\r\n"
+const CRLF* = "\r\n"
 const REDISNIL = "\0\0"
 
 type
@@ -93,8 +93,8 @@ proc decodeBulkStr(s:string): (RedisValue, int) =
   bulklen = parseInt(slen)
   var bulk: string
   if bulklen == -1:
-      bulk = nil
-      return (RedisValue(kind:vkBulkStr, bs:REDISNIL), crlfpos+len(CRLF))
+      bulk = REDISNIL 
+      return (RedisValue(kind:vkBulkStr, bs:bulk), crlfpos+len(CRLF))
   else:
     let nextcrlf = s.find(CRLF, crlfpos+len(CRLF))
     bulk = s[crlfpos+len(CRLF)..nextcrlf-1] 
@@ -131,7 +131,7 @@ proc decodeArray(s: string): (RedisValue, int) =
     return (RedisValue(kind:vkArray, l:arr), i)
   
   while i < len(s) and len(arr) < arrlen:
-    var pair = decode(s[i..len(s)])
+    var pair = decode(s[i..^1])
     var obj = pair[0]
     arr.add(obj)
     i += pair[1]
@@ -142,32 +142,35 @@ proc decode(s: string): (RedisValue, int) =
   var i = 0 
   while i < len(s):
     var curchar = $s[i]
+    var endindex = s.find(CRLF, i)+len(CRLF)
+    if endindex >= s.len:
+      endindex = s.len-1
     if curchar == "+":
-      var pair = decodeStr(s[i..s.find(CRLF, i)+len(CRLF)])
+      var pair = decodeStr(s[i..endindex])
       var obj =  pair[0]
       var count =  pair[1]
       i += count
       return (obj, i)
     elif curchar == "-":
-      var pair = decodeError(s[i..s.find(CRLF, i)+len(CRLF)])
+      var pair = decodeError(s[i..endindex])
       var obj =  pair[0]
       var count =  pair[1]
       i += count
       return (obj, i)
     elif curchar == "$":
-      var pair = decodeBulkStr(s[i..len(s)])
+      var pair = decodeBulkStr(s[i..^1])
       var obj =  pair[0]
       var count =  pair[1]
       i += count
       return (obj, i)
     elif curchar == ":":
-      var pair = decodeInt(s[i..s.find(CRLF, i)+len(CRLF)])
+      var pair = decodeInt(s[i..endindex])
       var obj =  pair[0]
       var count =  pair[1]
       i += count
       return (obj, i)
     elif curchar == "*":
-      var pair = decodeArray(s[i..len(s)])
+      var pair = decodeArray(s[i..^1])
       let obj = pair[0]
       let count =  pair[1]
       i += count 
