@@ -95,6 +95,9 @@ proc decodeBulkStr(s:string): (RedisValue, int) =
   if bulklen == -1:
       bulk = REDISNIL 
       return (RedisValue(kind:vkBulkStr, bs:bulk), crlfpos+len(CRLF))
+  # elif bulklen == 0:
+  #     bulk = ""
+  #     return (RedisValue(kind:vkBulkStr, bs:bulk), crlfpos+len(CRLF)+len(CRLF))
   else:
     let nextcrlf = s.find(CRLF, crlfpos+len(CRLF))
     bulk = s[crlfpos+len(CRLF)..nextcrlf-1] 
