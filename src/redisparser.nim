@@ -111,8 +111,7 @@ proc decodeInt(s: string): (RedisValue, int) =
   var i: int
   let crlfpos = s.find(CRLF)
   let sInt = s[1..crlfpos-1]
-  if sInt.isDigit():
-    i = parseInt(sInt)
+  discard parseInt(sInt,i)
   return (RedisValue(kind:vkInt, i:i), crlfpos+len(CRLF))
 
 
@@ -123,8 +122,7 @@ proc decodeArray(s: string): (RedisValue, int) =
   var arrlen = 0
   var crlfpos = s.find(CRLF)
   var arrlenStr = s[1..crlfpos-1]
-  if arrlenStr.isDigit():
-     arrlen = parseInt(arrlenStr)
+  discard parseInt(arrlenStr,arrlen)
   
   var nextobjpos = s.find(CRLF)+len(CRLF)
   var i = nextobjpos 
@@ -178,8 +176,14 @@ proc decode(s: string): (RedisValue, int) =
       let count =  pair[1]
       i += count 
       return (obj, i)
+    elif curchar == "\r":
+      i += 1
+      continue
+    elif curchar == "\n":
+      i += 1
+      continue
     else:
-      echo fmt"Unreognized char {curchar}"
+      echo fmt"Unreognized char {repr curchar}"
       break
 
 
