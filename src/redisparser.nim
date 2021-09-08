@@ -36,23 +36,24 @@ proc hash*(obj: RedisValue): Hash =
 proc `==`* (a, b: RedisValue): bool =
   ## Check two nodes for equality
   if a.isNil:
-      if b.isNil: return true
-      return false
+    if b.isNil: return true
+    return false
   elif b.isNil or a.kind != b.kind:
-      return false
+    return false
   else:
-      case a.kind
-      of vkStr:
-          result = a.s == b.s
-      of vkBulkStr:
-          result = a.bs == b.bs
-      of vkInt:
-          result = a.i == b.i
-      of vkArray:
-          result = a.l == b.l
-          result = true
-      of vkError:
-          result = a.err == b.err
+    case a.kind
+    of vkStr:
+      return a.s == b.s
+    of vkBulkStr:
+      return a.bs == b.bs
+    of vkInt:
+      return a.i == b.i
+    of vkArray:
+      return a.l == b.l
+    of vkError:
+      return a.err == b.err
+
+
 
 proc encode*(v: RedisValue) : string
 proc encodeStr(v: RedisValue) : string =

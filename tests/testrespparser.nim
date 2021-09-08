@@ -45,4 +45,6 @@ for k, v in testpairs.pairs():
     doAssert encodeValue(k) == v
     doAssert decodeString(v) == k
 
-#echo decodeString("*14\r\n$6\r\nlength\r\n:1\r\n$15\r\nradix-tree-keys\r\n:1\r\n$16\r\nradix-tree-nodes\r\n:2\r\n$17\r\nlast-generated-id\r\n$15\r\n1631073404886-0\r\n$6\r\ngroups\r\n:0\r\n$11\r\nfirst-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$10\r\nlast-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n")
+echo decodeString("*14\r\n$6\r\nlength\r\n:1\r\n$15\r\nradix-tree-keys\r\n:1\r\n$16\r\nradix-tree-nodes\r\n:2\r\n$17\r\nlast-generated-id\r\n$15\r\n1631073404886-0\r\n$6\r\ngroups\r\n:0\r\n$11\r\nfirst-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$10\r\nlast-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n")
+echo decodeString("*2\r\n*2\r\n$15\r\n1631095633882-0\r\n*2\r\n$4\r\nitem\r\n$1\r\n0\r\n*2\r\n$15\r\n1631095635235-0\r\n*2\r\n$4\r\nitem\r\n$1\r\n0\r\n")
+echo decodeString("*2\r\n$-1\r\n\r\n*2\r\n$15\r\n1631096564062-1\r\n*2\r\n$4\r\nitem\r\n$1\r\n0")
