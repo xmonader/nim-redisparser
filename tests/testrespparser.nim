@@ -1,4 +1,4 @@
-import redisparser, tables, strformat
+import redisparser, tables
 
 
 var testpairs = initOrderedTable[RedisValue, string]()
@@ -22,9 +22,9 @@ testpairs[RedisValue(kind:vkBulkStr, bs:"Hello, World THIS IS REALLY NICE")] = "
 
 # echo $encodeValue(RedisValue(kind:vkBulkStr, bs:"Hello, World THIS IS REALLY NICE"))
 # # #$32
-# # # Hello, World THIS IS REALLY NICE  
+# # # Hello, World THIS IS REALLY NICE
 
-# MORE TESTS 
+# MORE TESTS
 # echo decodeString("*3\r\n:1\r\n:2\r\n:3\r\n\r\n")
 # # # @[1, 2, 3]
 # echo decodeString("+Hello, World\r\n")
@@ -44,3 +44,5 @@ testpairs[RedisValue(kind:vkBulkStr, bs:"Hello, World THIS IS REALLY NICE")] = "
 for k, v in testpairs.pairs():
     doAssert encodeValue(k) == v
     doAssert decodeString(v) == k
+
+#echo decodeString("*14\r\n$6\r\nlength\r\n:1\r\n$15\r\nradix-tree-keys\r\n:1\r\n$16\r\nradix-tree-nodes\r\n:2\r\n$17\r\nlast-generated-id\r\n$15\r\n1631073404886-0\r\n$6\r\ngroups\r\n:0\r\n$11\r\nfirst-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$10\r\nlast-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n")
