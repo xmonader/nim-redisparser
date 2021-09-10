@@ -2,11 +2,11 @@ import redisparser, tables
 
 
 var testpairs = initOrderedTable[RedisValue, string]()
-testpairs[RedisValue(kind:vkStr, s:"Hello, World")] = "+Hello, World\r\n"
-testpairs[RedisValue(kind:vkInt, i:341)] = ":341\r\n"
-testpairs[RedisValue(kind:vkError, err:"Not found")] = "-Not found\r\n"
-testpairs[RedisValue(kind:vkArray, l: @[RedisValue(kind:vkStr, s:"Hello World"), RedisValue(kind:vkInt, i:23)])] = "*2\r\n+Hello World\r\n:23\r\n\r\n"
-testpairs[RedisValue(kind:vkBulkStr, bs:"Hello, World THIS IS REALLY NICE")] = "$32\r\nHello, World THIS IS REALLY NICE\r\n"
+testpairs[newRedisString("Hello, World")] = "+Hello, World\r\n"
+testpairs[newRedisInt(341)] = ":341\r\n"
+testpairs[newRedisError("Not found")] = "-Not found\r\n"
+testpairs[newRedisArray(@[newRedisString("Hello World"), newRedisInt(23)])] = "*2\r\n+Hello World\r\n:23\r\n\r\n"
+testpairs[newRedisBulkString("Hello, World THIS IS REALLY NICE")] = "$32\r\nHello, World THIS IS REALLY NICE\r\n"
 
 
 # echo $encodeValue(RedisValue(kind:vkStr, s:"Hello, World"))
@@ -48,3 +48,4 @@ for k, v in testpairs.pairs():
 echo decodeString("*14\r\n$6\r\nlength\r\n:1\r\n$15\r\nradix-tree-keys\r\n:1\r\n$16\r\nradix-tree-nodes\r\n:2\r\n$17\r\nlast-generated-id\r\n$15\r\n1631073404886-0\r\n$6\r\ngroups\r\n:0\r\n$11\r\nfirst-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$10\r\nlast-entry\r\n*2\r\n$15\r\n1631073404886-0\r\n*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n")
 echo decodeString("*2\r\n*2\r\n$15\r\n1631095633882-0\r\n*2\r\n$4\r\nitem\r\n$1\r\n0\r\n*2\r\n$15\r\n1631095635235-0\r\n*2\r\n$4\r\nitem\r\n$1\r\n0\r\n")
 echo decodeString("*2\r\n$-1\r\n\r\n*2\r\n$15\r\n1631096564062-1\r\n*2\r\n$4\r\nitem\r\n$1\r\n0")
+echo decodeString("*4\r\n:0\r\n$-1\r\n\r\n$-1\r\n\r\n*-1\r\n")
