@@ -95,30 +95,17 @@ proc newRedisInt*(input: SomeInteger = 0): RedisValue {.inline.} = RedisValue(ki
 proc newRedisBulkString*(input: string = ""): RedisValue {.inline.} = RedisValue(kind: vkBulkStr, bs: input)
 proc newRedisArray*(input: seq[RedisValue] = @[]): RedisValue {.inline.} = RedisValue(kind: vkArray, l: input)
 
-proc isString*(v: RedisValue): bool {.inline.} =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
-  v.kind == vkStr
-proc isError*(v: RedisValue): bool {.inline.} =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
-  v.kind == vkError
-proc isInteger*(v: RedisValue): bool {.inline.} =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
-  v.kind == vkInt
-proc isBulkString*(v: RedisValue): bool {.inline.} =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
-  v.kind == vkBulkStr
-proc isArray*(v: RedisValue): bool {.inline.} =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
-  v.kind == vkArray
+proc isString*(v: RedisValue): bool {.inline.} = v.kind == vkStr
+
+proc isError*(v: RedisValue): bool {.inline.} = v.kind == vkError
+
+proc isInteger*(v: RedisValue): bool {.inline.} = v.kind == vkInt
+
+proc isBulkString*(v: RedisValue): bool {.inline.} = v.kind == vkBulkStr
+
+proc isArray*(v: RedisValue): bool {.inline.} = v.kind == vkArray
 
 proc getStr*(v: RedisValue): string =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
   if v.isString():
     return v.s
   elif v.isBulkString():
@@ -126,22 +113,16 @@ proc getStr*(v: RedisValue): string =
   raise newException(TypeError, fmt"Value is not a string or bulk string, got kind: {v.kind}")
 
 proc getError*(v: RedisValue): string =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
   if v.isError():
     return v.err
   raise newException(TypeError, fmt"Value is not an error, got kind: {v.kind}")
 
 proc getInt*(v: RedisValue): int =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
   if v.isInteger():
     return v.i
   raise newException(TypeError, fmt"Value is not an interger, got kind: {v.kind}")
 
 proc getItems*(v: RedisValue): seq[RedisValue] =
-  if v.isNil:
-    raise newException(ValueError, "Redis value is nil")
   if v.isArray():
     return v.l
   raise newException(TypeError, fmt"Value is not an array, got kind: {v.kind}")
