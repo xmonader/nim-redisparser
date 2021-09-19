@@ -85,9 +85,10 @@ proc `[]`*(v: RedisValue, idx: int): RedisValue =
   result = v.l[idx]
 
 iterator items*(v: RedisValue): RedisValue =
-  if v.kind == vkArray:
-    for i in 0..<v.l.len:
-      yield v.l[0]
+  if v.kind != vkArray:
+    raise newException(TypeError, fmt"Array expected but got {v.kind}")
+  for i in 0..<v.l.len:
+    yield v.l[i]
 
 proc newRedisString*(input: string = ""): RedisValue {.inline.} = RedisValue(kind: vkStr, s: input)
 proc newRedisError*(input: string = ""): RedisValue {.inline.} = RedisValue(kind: vkError, err: input)
